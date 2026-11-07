@@ -1,0 +1,58 @@
+version: "3.8"
+
+services:
+  victoriametrics:
+    image: victoriametrics/victoria-metrics:latest
+    container_name: victoriametrics
+    restart: unless-stopped
+    command:
+      - "-storageDataPath=/vmdata"
+      - "-retentionPeriod=${VM_RETENTION_PERIOD:-6}"
+      - "-memory.allowedPercent=${VM_ALLOWED_PERCENT:-40}"
+      - "-search.maxConcurrentRequests=${VM_MAX_CONCURRENT_REQUESTS:-2}"
+      - "-insert.maxQueueDuration=1s"
+      - "-opentelemetry.usePrometheusNaming=true"
+    volumes:
+      - vmdata:/vmdata
+    ports:
+      - "${VM_PORT:-8428}:8428"
+    deploy:
+      resources:
+        limits:
+          memory: ${VM_MEMORY_LIMIT:-96M}
+    logging:
+      driver: "k8s-file"
+      options:
+        max-size: "10m"
+        max-file: "2"
+
+  grafana:
+    image: docker.io/grafana/grafana-oss:latest
+    container_name: grafana
+    restart: unless-stopped
+    depends_on:
+      - victoriametrics
+    ports:
+      - "${GRAFANA_PORT:-3000}:3000"
+    volumes:
+      - grafanadata:/var/lib/grafana
+      - ./provisioning/datasources:/etc/grafana/provisioning/datasources:ro
+    environment:
+      - GF_ANALYTICS_REPORTING_ENABLED=false
+      - GF_UNIFIED_ALERTING_ENABLED=${GRAFANA_ALERTING_ENABLED:-false}
+      - GF_ALERTING_ENABLED=${GRAFANA_ALERTING_ENABLED:-false}
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_SERVER_CONNECTIONS_MAX=${GRAFANA_SERVER_CONNECTIONS_MAX:-10}
+    deploy:
+      resources:
+        limits:
+          memory: ${GRAFANA_MEMORY_LIMIT:-200M}
+    logging:
+      driver: "k8s-file"
+      options:
+        max-size: "10m"
+        max-file: "2"
+
+volumes:
+  vmdata:
+  grafanadata:
