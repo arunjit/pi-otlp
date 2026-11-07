@@ -29,28 +29,30 @@ Pre-tuned environment configurations are available in [`profiles/`](profiles/):
 
 ## Quick Start
 
-### 1. Select a profile
-Copy the profile suited for your hardware to `.env` (defaults to `small_pi` if omitted):
+### 1. Start the stack
+
+You can pass a profile directly using `--env-file`:
 
 ```bash
-# For a 1-2GB Raspberry Pi:
-cp profiles/small_pi.env .env
+# Run with the small_pi profile (1-2GB RAM):
+podman compose --env-file profiles/small_pi.env up -d
 
-# For a 4GB / 8GB Raspberry Pi:
-cp profiles/big_pi.env .env
+# Or run with the big_pi profile (4GB+ RAM):
+podman compose --env-file profiles/big_pi.env up -d
 
-# For a server:
-cp profiles/server.env .env
+# Or run with the server profile:
+podman compose --env-file profiles/server.env up -d
 ```
 
-### 2. Start the stack
+Alternatively, copy your preferred profile to `.env` once:
 
 ```bash
+cp profiles/small_pi.env .env
 podman compose up -d
 ```
-*(Also compatible with `docker compose`).*
+*(If neither `.env` nor `--env-file` is specified, the compose file automatically falls back to `small_pi` defaults).*
 
-### 3. Send OTLP Metrics
+### 2. Send OTLP Metrics
 
 Configure your application or OpenTelemetry SDK to send HTTP metrics to:
 
@@ -59,6 +61,29 @@ export OTEL_EXPORTER_OTLP_METRICS_ENDPOINT="http://<pi-ip>:8428/opentelemetry/v1
 export OTEL_EXPORTER_OTLP_METRICS_PROTOCOL="http/protobuf"
 ```
 
-### 4. View Dashboards
+### 3. View Dashboards
 
 Open `http://<pi-ip>:3000` in your browser (default login: `admin` / `admin`). VictoriaMetrics is already configured as the default Prometheus datasource.
+
+---
+
+## Raspberry Pi Prerequisite (Memory Limits)
+
+Raspberry Pi OS disables kernel memory cgroups by default. If you see:
+```text
+crun: opening file `memory.max` for writing: No such file or directory
+```
+Enable memory cgroups in your boot config:
+
+1. Edit `/boot/firmware/cmdline.txt` (or `/boot/cmdline.txt` on older OS releases):
+   ```bash
+   sudo nano /boot/firmware/cmdline.txt
+   ```
+2. Append to the end of the **single line** (do not add a new line):
+   ```text
+   cgroup_enable=memory cgroup_memory=1
+   ```
+3. Reboot:
+   ```bash
+   sudo reboot
+   ```
