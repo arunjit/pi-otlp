@@ -8,12 +8,15 @@ Powered by **[VictoriaMetrics](https://victoriametrics.com/)** and **[Grafana](h
 
 ## Architecture & Endpoints
 
-| Service | Port | Endpoint / Purpose |
-| :--- | :--- | :--- |
-| **VictoriaMetrics** | `8428` | **OTLP Ingestion**: `http://<host>:8428/opentelemetry/v1/metrics`<br>**Prometheus Query API & UI**: `http://<host>:8428` |
-| **Grafana** | `3000` | **Web UI**: `http://<host>:3000`<br>Pre-provisioned with VictoriaMetrics as the default datasource. |
+| Service | Port | Profile | Endpoint / Purpose |
+| :--- | :--- | :--- | :--- |
+| **OTel Collector** | `4317` / `4318` | `full` (`big_pi`, `server`) | **Unified OTLP Router**: gRPC (`:4317`) & HTTP (`:4318`) for metrics, logs, and traces |
+| **VictoriaMetrics** | `8428` | All | **Metrics DB & Direct OTLP**: `http://<host>:8428/opentelemetry/v1/metrics` |
+| **VictoriaLogs** | `9428` | `full` (`big_pi`, `server`) | **Logs DB & UI**: `http://<host>:9428/select/vmui/` |
+| **Grafana Tempo** | `3200` | `full` (`big_pi`, `server`) | **Distributed Tracing Backend** |
+| **Grafana** | `3000` | All | **Web UI**: `http://<host>:3000` (pre-provisioned datasources) |
 
-*Note: VictoriaMetrics single-node serves OTLP metrics directly over its HTTP server (port 8428).*
+*Note: All containers attach to the shared `pi-otlp-net` network so external application stacks can attach with `external: true` and send OTLP to `http://otel-collector:4317`.*
 
 ---
 
@@ -52,14 +55,16 @@ podman compose up -d
 ```
 *(If neither `.env` nor `--env-file` is specified, the compose file automatically falls back to `small_pi` defaults).*
 
-### 2. Send OTLP Metrics
+### 2. Send OTLP Telemetry
 
-Configure your application or OpenTelemetry SDK to send HTTP metrics to:
+When running `big_pi` or `server`, send all three signals (metrics, logs, traces) to the **OTel Collector** using standard OpenTelemetry environment variables:
 
 ```bash
-export OTEL_EXPORTER_OTLP_METRICS_ENDPOINT="http://<pi-ip>:8428/opentelemetry/v1/metrics"
-export OTEL_EXPORTER_OTLP_METRICS_PROTOCOL="http/protobuf"
+export OTEL_EXPORTER_OTLP_ENDPOINT="http://<pi-ip>:4317"
+export OTEL_EXPORTER_OTLP_PROTOCOL="grpc"
 ```
+
+*(If running `small_pi` in metrics-only mode, send HTTP metrics directly to VictoriaMetrics: `OTEL_EXPORTER_OTLP_METRICS_ENDPOINT="http://<pi-ip>:8428/opentelemetry/v1/metrics"`).*
 
 ### 3. View Dashboards
 
