@@ -1,0 +1,16 @@
+services:
+  example-app:
+    build: .
+    container_name: pi-otlp-example
+    restart: unless-stopped
+    environment:
+      - OTEL_SERVICE_NAME=pi-otlp-example
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
+      - OTEL_EXPORTER_OTLP_PROTOCOL=grpc
+      - INTERVAL_SECONDS=2.0
+    networks:
+      - pi-otlp-net
+
+networks:
+  pi-otlp-net:
+    external: true

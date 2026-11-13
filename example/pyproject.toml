@@ -1,0 +1,10 @@
+[project]
+name = "pi-otlp-example"
+version = "0.1.0"
+description = "Minimal Python app emitting OTLP metrics, logs, and traces to pi-otlp"
+requires-python = ">=3.12"
+dependencies = [
+    "opentelemetry-api>=1.28.0",
+    "opentelemetry-sdk>=1.28.0",
+    "opentelemetry-exporter-otlp-proto-grpc>=1.28.0",
+]
