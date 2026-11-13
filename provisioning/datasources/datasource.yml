@@ -8,10 +8,10 @@ datasources:
     isDefault: true
     editable: true
 
-  - name: Tempo
+  - name: VictoriaTraces
     type: tempo
     access: proxy
-    url: http://tempo:3200
+    url: http://victoriatraces:10428/select/tempo
     editable: true
 
   - name: VictoriaLogs

@@ -26,8 +26,8 @@ exporters:
     tls:
       insecure: true
 
-  otlp/tempo:
-    endpoint: tempo:4317
+  otlphttp/victoriatraces:
+    traces_endpoint: http://victoriatraces:10428/insert/opentelemetry/v1/traces
     tls:
       insecure: true
 
@@ -44,4 +44,4 @@ service:
     traces:
       receivers: [otlp]
       processors: [memory_limiter, batch]
-      exporters: [otlp/tempo]
+      exporters: [otlphttp/victoriatraces]

@@ -13,7 +13,7 @@ Powered by **[VictoriaMetrics](https://victoriametrics.com/)** and **[Grafana](h
 | **OTel Collector** | `4317` / `4318` | `full` (`big_pi`, `server`) | **Unified OTLP Router**: gRPC (`:4317`) & HTTP (`:4318`) for metrics, logs, and traces |
 | **VictoriaMetrics** | `8428` | All | **Metrics DB & Direct OTLP**: `http://<host>:8428/opentelemetry/v1/metrics` |
 | **VictoriaLogs** | `9428` | `full` (`big_pi`, `server`) | **Logs DB & UI**: `http://<host>:9428/select/vmui/` |
-| **Grafana Tempo** | `3200` | `full` (`big_pi`, `server`) | **Distributed Tracing Backend** |
+| **VictoriaTraces** | `10428` | `full` (`big_pi`, `server`) | **Distributed Tracing DB & UI**: `http://<host>:10428/select/vmui/` |
 | **Grafana** | `3000` | All | **Web UI**: `http://<host>:3000` (pre-provisioned datasources) |
 
 *Note: All containers attach to the shared `pi-otlp-net` network so external application stacks can attach with `external: true` and send OTLP to `http://otel-collector:4317`.*

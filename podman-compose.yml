@@ -76,23 +76,25 @@ services:
         max-size: "10m"
         max-file: "2"
 
-  tempo:
-    image: docker.io/grafana/tempo:latest
-    container_name: tempo
+  victoriatraces:
+    image: victoriametrics/victoria-traces:latest
+    container_name: victoriatraces
     restart: unless-stopped
     profiles: ["full"]
-    command: ["-config.file=/etc/tempo.yaml"]
+    command:
+      - "-storageDataPath=/vtdata"
+      - "-retentionPeriod=${VT_RETENTION_PERIOD:-7d}"
+      - "-memory.allowedPercent=${VT_ALLOWED_PERCENT:-20}"
     volumes:
-      - ./config/tempo.yaml:/etc/tempo.yaml:ro
-      - tempodata:/var/tempo
+      - vtdata:/vtdata
     ports:
-      - "${TEMPO_PORT:-3200}:3200"
+      - "${VT_PORT:-10428}:10428"
     networks:
       - pi-otlp-net
     deploy:
       resources:
         limits:
-          memory: ${TEMPO_MEMORY_LIMIT:-192M}
+          memory: ${VT_MEMORY_LIMIT:-128M}
     logging:
       driver: "k8s-file"
       options:
@@ -132,7 +134,7 @@ services:
 volumes:
   vmdata:
   vldata:
-  tempodata:
+  vtdata:
   grafanadata:
 
 networks:
